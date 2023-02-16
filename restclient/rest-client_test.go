@@ -1,9 +1,9 @@
 package restclient_test
 
 import (
-	"GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
 	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"

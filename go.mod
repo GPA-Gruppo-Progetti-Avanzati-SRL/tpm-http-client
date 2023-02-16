@@ -1,4 +1,4 @@
-module GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client
+module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client
 
 go 1.19
 
