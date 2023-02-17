@@ -350,8 +350,10 @@ func (s *Client) startHarSpan(parentSpan hartracing.Span) hartracing.Span {
 
 	if parentSpan != nil {
 		span = hartracing.GlobalTracer().StartSpan(hartracing.ChildOf(parentSpan.Context()))
+		log.Trace().Str("span-id", span.Id()).Str("parent-span-id", parentSpan.Id()).Msg(semLogContext + " - started a child span")
 	} else {
 		span = hartracing.GlobalTracer().StartSpan()
+		log.Trace().Str("span-id", span.Id()).Msg(semLogContext + " - starting a brand new span")
 	}
 
 	return span
