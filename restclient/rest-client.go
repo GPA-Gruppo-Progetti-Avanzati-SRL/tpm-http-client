@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/hartracing"
 	"github.com/go-resty/resty/v2"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -38,6 +39,8 @@ type Client struct {
 	restClient *resty.Client
 	span       opentracing.Span
 	spanOwned  bool
+
+	harSpan hartracing.Span
 }
 
 func NewClient(cfg *Config, opts ...Option) *Client {
@@ -56,8 +59,9 @@ func NewClient(cfg *Config, opts ...Option) *Client {
 	}
 
 	s := &Client{
-		cfg:  clientOptions,
-		span: clientOptions.Span,
+		cfg:     clientOptions,
+		span:    clientOptions.Span,
+		harSpan: clientOptions.HarSpan,
 	}
 
 	if clientOptions.TraceGroupName != "" {
@@ -195,6 +199,10 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *har.
 		Request:         reqDef,
 	}
 
+	var harSpan hartracing.Span
+	harSpan = s.startHarSpan(s.harSpan)
+	defer harSpan.Finish()
+
 	var reqSpanName string
 	if s.cfg.TraceRequestName != "" {
 		reqSpanName = strings.Replace(s.cfg.TraceRequestName, RequestTraceNameOpNamePlaceHolder, opName, 1)
@@ -207,7 +215,7 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *har.
 	defer reqSpan.Finish()
 
 	// reqDef.Headers = append(reqDef.Headers, NameValuePair{Name: "Accept", Value: "application/json"})
-	req := s.getRequestWithSpan(reqDef, reqSpan)
+	req := s.getRequestWithSpans(reqDef, reqSpan, harSpan)
 
 	var resp *resty.Response
 	var err error
@@ -277,15 +285,19 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *har.
 	}
 
 	e.Response = r
+
+	harSpan.AddEntry(e)
+
 	return e, err
 	// return resp.StatusCode(), resp.Body(), resp.Header(), err
 }
 
-func (s *Client) getRequestWithSpan(reqDef *har.Request, reqSpan opentracing.Span) *resty.Request {
+func (s *Client) getRequestWithSpans(reqDef *har.Request, reqSpan opentracing.Span, reqHarSpan hartracing.Span) *resty.Request {
 
 	req := s.restClient.R()
 	// Transmit the span's TraceContext as HTTP headers on our outbound request.
 	_ = opentracing.GlobalTracer().Inject(reqSpan.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header))
+	_ = hartracing.GlobalTracer().Inject(reqHarSpan.Context(), hartracing.HTTPHeadersCarrier(req.Header))
 
 	switch reqDef.Method {
 	case http.MethodGet:
@@ -330,6 +342,20 @@ func (s *Client) getRequestSpan() opentracing.Span {
 	return reqSpan
 }
 */
+
+func (s *Client) startHarSpan(parentSpan hartracing.Span) hartracing.Span {
+
+	const semLogContext = "tpm-http-client::stat-har-span"
+	var span hartracing.Span
+
+	if parentSpan != nil {
+		span = hartracing.GlobalTracer().StartSpan(hartracing.ChildOf(parentSpan.Context()))
+	} else {
+		span = hartracing.GlobalTracer().StartSpan()
+	}
+
+	return span
+}
 
 func (s *Client) startSpan(groupParentSpan, requestParentSpan opentracing.Span, spanName string) opentracing.Span {
 

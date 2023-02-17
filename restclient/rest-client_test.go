@@ -3,8 +3,11 @@ package restclient_test
 import (
 	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/hartracing"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/hartracing/filetracer"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
 	"github.com/opentracing/opentracing-go"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
@@ -16,7 +19,19 @@ import (
 	"time"
 )
 
+const (
+	ServerPort = 9090
+)
+
 func TestRestClient(t *testing.T) {
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	harCloser, err := InitHarTracing(t)
+	require.NoError(t, err)
+	if harCloser != nil {
+		defer harCloser.Close()
+	}
 
 	closer, err := InitTracing(t)
 	require.NoError(t, err)
@@ -40,8 +55,8 @@ func TestRestClient(t *testing.T) {
 	urlBuilder := har.UrlBuilder{}
 	urlBuilder.WithScheme(har.HttpScheme)
 	urlBuilder.WithHostname(har.Localhost)
-	urlBuilder.WithPort(3001)
-	urlBuilder.WithPath("/api/v1/token-contexts/BPMIFI/tokens")
+	urlBuilder.WithPort(ServerPort)
+	urlBuilder.WithPath("/api/v1/example-post")
 
 	reqBody := []byte("{ \"msg\": \"hello world\"}")
 	/*
@@ -57,10 +72,16 @@ func TestRestClient(t *testing.T) {
 		}
 	*/
 
-	client := restclient.NewClient(&cfg)
+	harTracingSpan := hartracing.GlobalTracer().StartSpan()
+	client := restclient.NewClient(&cfg, restclient.WithHarSpan(harTracingSpan))
 	defer client.Close()
 
-	request, err := client.NewRequest(http.MethodPost, urlBuilder.Url(), reqBody, []har.NameValuePair{{Name: "Content-type", Value: "application/json"}, {Name: "Accept", Value: "application/json"}}, nil)
+	/*
+		harTraceId := "63ef404fc936e44b4a000003:63ef404fc936e44b4a000003:63ef404fc936e44b4a000003"
+		reqHeaders = append(reqHeaders, har.NameValuePair{Name: hartracing.HARTraceIdHeaderName, Value: harTraceId})
+	*/
+	reqHeaders := []har.NameValuePair{{Name: "Content-type", Value: "application/json"}, {Name: "Accept", Value: "application/json"}}
+	request, err := client.NewRequest(http.MethodPost, urlBuilder.Url(), reqBody, reqHeaders, nil)
 	require.NoError(t, err)
 
 	harEntry, err := client.Execute("op2", "req-id", "", request, nil)
@@ -75,6 +96,7 @@ func TestRestClient(t *testing.T) {
 	opts = append(opts, har.WithEntry(harEntry))
 	logHAR(t, har.NewHAR(opts...))
 	require.NoError(t, err)
+
 }
 
 const (
@@ -85,6 +107,13 @@ func logHAR(t *testing.T, har *har.HAR) {
 	b, err := json.Marshal(har)
 	require.NoError(t, err)
 	t.Log(string(b))
+}
+
+func InitHarTracing(t *testing.T) (io.Closer, error) {
+	trc, c := filetracer.NewTracer("/tmp")
+	hartracing.SetGlobalTracer(trc)
+
+	return c, nil
 }
 
 func InitTracing(t *testing.T) (io.Closer, error) {

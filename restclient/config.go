@@ -1,6 +1,7 @@
 package restclient
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/hartracing"
 	"github.com/opentracing/opentracing-go"
 	"time"
 )
@@ -29,7 +30,8 @@ type Config struct {
 	RetryMaxWaitTime time.Duration `mapstructure:"retry-max-wait-time,omitempty" json:"retry-max-wait-time,omitempty" yaml:"retry-max-wait-time,omitempty"`
 	RetryOnHttpError []int         `mapstructure:"retry-on-errors,omitempty" json:"retry-on-errors,omitempty" yaml:"retry-on-errors,omitempty"`
 
-	Span opentracing.Span `mapstructure:"-" json:"-" yaml:"-"`
+	Span    opentracing.Span `mapstructure:"-" json:"-" yaml:"-"`
+	HarSpan hartracing.Span  `mapstructure:"-" json:"-" yaml:"-"`
 }
 
 type Option func(o *Config)
@@ -37,6 +39,12 @@ type Option func(o *Config)
 func WithSpan(span opentracing.Span) Option {
 	return func(o *Config) {
 		o.Span = span
+	}
+}
+
+func WithHarSpan(span hartracing.Span) Option {
+	return func(o *Config) {
+		o.HarSpan = span
 	}
 }
 
