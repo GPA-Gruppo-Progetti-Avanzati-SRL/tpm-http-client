@@ -110,7 +110,8 @@ func logHAR(t *testing.T, har *har.HAR) {
 }
 
 func InitHarTracing(t *testing.T) (io.Closer, error) {
-	trc, c := filetracer.NewTracer("/tmp")
+
+	trc, c := filetracer.NewTracer("")
 	hartracing.SetGlobalTracer(trc)
 
 	return c, nil
