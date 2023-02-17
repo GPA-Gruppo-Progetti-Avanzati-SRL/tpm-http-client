@@ -1,7 +1,7 @@
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.0.71 h1:qF6dM5l0oyEU3tgRSOdkiuy/XuKIt3tVltte7YFnY3I=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.0.71/go.mod h1:hbtm3YCpUtxlUitYymlOI35mara7CLVX+Ukyh+BuA3o=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.3-RC1 h1:ydFkZYrTMoGcY/E3HGUg2PHteYC8NDSBRS81LhXzLSA=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.3-RC1/go.mod h1:88tO3akDoeM6hmHzMJESdEjM4XdvjO8cuXNf9LR4AxM=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.3-RC2 h1:6uqs5TsAwAINqFaNYdXsgFDQGbk9VkdmU9uoMixj4QY=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.3-RC2/go.mod h1:88tO3akDoeM6hmHzMJESdEjM4XdvjO8cuXNf9LR4AxM=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2 h1:5IcZpTvzydCQeHzK4Ef/D5rrSqwxob0t8PQPMybUNFM=
 github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
