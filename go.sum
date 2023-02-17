@@ -1,5 +1,7 @@
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.0.71 h1:qF6dM5l0oyEU3tgRSOdkiuy/XuKIt3tVltte7YFnY3I=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.0.71/go.mod h1:hbtm3YCpUtxlUitYymlOI35mara7CLVX+Ukyh+BuA3o=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.0.73 h1:yraQ7JsjxkTU3vTKcGVzW/9yfaEk0z2Y8MeSb3wHUk4=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.0.73/go.mod h1:RTEsyaJJ+ZUKh9obT4PUbI7q6Layq3c4ktXFQRV5MGg=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.4-RC1 h1:sLStHPusCII/zwt483+dkybaP1tK9+2MFb1bbEWbGto=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.4-RC1/go.mod h1:88tO3akDoeM6hmHzMJESdEjM4XdvjO8cuXNf9LR4AxM=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2 h1:5IcZpTvzydCQeHzK4Ef/D5rrSqwxob0t8PQPMybUNFM=
