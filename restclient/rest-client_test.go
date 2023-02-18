@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/hartracing"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/hartracing/filetracer"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/hartracing/logzerotracer"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog"
@@ -86,7 +86,7 @@ func TestRestClient(t *testing.T) {
 	request, err := client.NewRequest(http.MethodPost, urlBuilder.Url(), reqBody, reqHeaders, nil)
 	require.NoError(t, err)
 
-	harEntry, err := client.Execute("op2", "req-id", "", request, nil)
+	harEntry, err := client.Execute(request, restclient.ExecutionWithOpName("op2"), restclient.ExecutionWithRequestId("req-id"))
 	var opts []har.BuilderOption
 	opts = append(opts, har.WithEntry(harEntry))
 	if err != nil {
@@ -94,7 +94,7 @@ func TestRestClient(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	harEntry, err = client.Execute("op", "req-id", "lra-id", request, nil)
+	harEntry, err = client.Execute(request, restclient.ExecutionWithOpName("op"), restclient.ExecutionWithRequestId("req-id"), restclient.ExecutionWithLraId("lra-id"))
 	opts = append(opts, har.WithEntry(harEntry))
 	logHAR(t, har.NewHAR(opts...))
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func logHAR(t *testing.T, har *har.HAR) {
 
 func InitHarTracing(t *testing.T) (io.Closer, error) {
 
-	trc, c, err := filetracer.NewTracer()
+	trc, c, err := logzerotracer.NewTracer()
 	require.NoError(t, err)
 	hartracing.SetGlobalTracer(trc)
 

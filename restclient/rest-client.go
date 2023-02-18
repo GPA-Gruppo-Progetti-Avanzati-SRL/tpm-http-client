@@ -189,29 +189,34 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers har.
 	return req, nil
 }
 
-func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *har.Request, requestParentSpan opentracing.Span) (*har.Entry, error) {
+func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption) (*har.Entry, error) {
+
+	execCtx := ExecutionContext{}
+	for _, o := range execOpts {
+		o(&execCtx)
+	}
 
 	now := time.Now()
 	e := &har.Entry{
-		Comment:         reqId,
+		Comment:         execCtx.RequestId,
 		StartedDateTime: now.Format("2006-01-02T15:04:05.999999999Z07:00"),
 		StartDateTimeTm: now,
 		Request:         reqDef,
 	}
 
 	var harSpan hartracing.Span
-	harSpan = s.startHarSpan(s.harSpan)
+	harSpan = s.startHarSpan(s.harSpan, execCtx.HarSpan)
 	defer harSpan.Finish()
 
 	var reqSpanName string
 	if s.cfg.TraceRequestName != "" {
-		reqSpanName = strings.Replace(s.cfg.TraceRequestName, RequestTraceNameOpNamePlaceHolder, opName, 1)
-		reqSpanName = strings.Replace(reqSpanName, RequestTraceNameRequestIdPlaceHolder, reqId, 1)
+		reqSpanName = strings.Replace(s.cfg.TraceRequestName, RequestTraceNameOpNamePlaceHolder, execCtx.OpName, 1)
+		reqSpanName = strings.Replace(reqSpanName, RequestTraceNameRequestIdPlaceHolder, execCtx.RequestId, 1)
 	} else {
-		reqSpanName = strings.Join([]string{opName, reqId}, "_")
+		reqSpanName = strings.Join([]string{execCtx.OpName, execCtx.RequestId}, "_")
 	}
 
-	reqSpan := s.startSpan(s.span, requestParentSpan, reqSpanName)
+	reqSpan := s.startSpan(s.span, execCtx.Span, reqSpanName)
 	defer reqSpan.Finish()
 
 	// reqDef.Headers = append(reqDef.Headers, NameValuePair{Name: "Accept", Value: "application/json"})
@@ -240,7 +245,7 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *har.
 		sc = resp.StatusCode()
 	}
 
-	s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, sc, err)
+	s.setSpanTags(reqSpan, execCtx.OpName, execCtx.RequestId, execCtx.LRAId, u, reqDef.Method, sc, err)
 
 	var r *har.Response
 	if err == nil {
@@ -264,7 +269,7 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *har.
 		}
 	} else {
 		sc, st = DetectStatusCodeStatusTextFromError(sc, err)
-		s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, sc, err)
+		s.setSpanTags(reqSpan, execCtx.OpName, execCtx.RequestId, execCtx.LRAId, u, reqDef.Method, sc, err)
 		err = util.NewError(strconv.Itoa(sc), err)
 		r = har.NewResponse(sc, st, "text/plain", []byte(err.Error()), nil)
 	}
@@ -343,10 +348,15 @@ func (s *Client) getRequestSpan() opentracing.Span {
 }
 */
 
-func (s *Client) startHarSpan(parentSpan hartracing.Span) hartracing.Span {
+func (s *Client) startHarSpan(clientSpan hartracing.Span, requestSpan hartracing.Span) hartracing.Span {
 
 	const semLogContext = "tpm-http-client::stat-har-span"
 	var span hartracing.Span
+
+	parentSpan := requestSpan
+	if parentSpan == nil {
+		parentSpan = clientSpan
+	}
 
 	if parentSpan != nil {
 		span = hartracing.GlobalTracer().StartSpan(hartracing.ChildOf(parentSpan.Context()))
