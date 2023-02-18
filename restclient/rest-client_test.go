@@ -73,6 +73,8 @@ func TestRestClient(t *testing.T) {
 	*/
 
 	harTracingSpan := hartracing.GlobalTracer().StartSpan()
+	defer harTracingSpan.Finish()
+
 	client := restclient.NewClient(&cfg, restclient.WithHarSpan(harTracingSpan))
 	defer client.Close()
 
