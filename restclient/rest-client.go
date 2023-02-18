@@ -135,8 +135,7 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers har.
 
 	var hs []har.NameValuePair
 
-	// Default content-type used if something else is not found.
-	ct := "application/json"
+	ct := ""
 
 	// Setting first the default headers... in principle I should avoid dups....
 	for _, h := range s.cfg.Headers {
@@ -170,6 +169,21 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers har.
 		pars = append(pars, har.Param{Name: h.Name, Value: h.Value})
 	}
 
+	bodySize := -1
+	var postData har.PostData
+	if len(body) > 0 {
+		if ct == "" {
+			// Default content-type used if something else is not found.
+			ct = "application/json"
+		}
+
+		postData = har.PostData{
+			MimeType: ct,
+			Data:     body,
+			Params:   pars,
+		}
+	}
+
 	req := &har.Request{
 		Method:      method,
 		URL:         url,
@@ -178,12 +192,8 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers har.
 		HeadersSize: -1,
 		Cookies:     []har.Cookie{},
 		QueryString: []har.NameValuePair{},
-		BodySize:    int64(len(body)),
-		PostData: &har.PostData{
-			MimeType: ct,
-			Data:     body,
-			Params:   pars,
-		},
+		BodySize:    int64(bodySize),
+		PostData:    &postData,
 	}
 
 	return req, nil
