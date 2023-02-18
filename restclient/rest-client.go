@@ -170,14 +170,14 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers har.
 	}
 
 	bodySize := -1
-	var postData har.PostData
+	var postData *har.PostData
 	if len(body) > 0 {
 		if ct == "" {
 			// Default content-type used if something else is not found.
 			ct = "application/json"
 		}
 
-		postData = har.PostData{
+		postData = &har.PostData{
 			MimeType: ct,
 			Data:     body,
 			Params:   pars,
@@ -193,7 +193,7 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers har.
 		Cookies:     []har.Cookie{},
 		QueryString: []har.NameValuePair{},
 		BodySize:    int64(bodySize),
-		PostData:    &postData,
+		PostData:    postData,
 	}
 
 	return req, nil
