@@ -360,7 +360,7 @@ func (s *Client) getRequestSpan() opentracing.Span {
 
 func (s *Client) startHarSpan(clientSpan hartracing.Span, requestSpan hartracing.Span) hartracing.Span {
 
-	const semLogContext = "tpm-http-client::stat-har-span"
+	const semLogContext = "tpm-http-client::start-har-span"
 	var span hartracing.Span
 
 	parentSpan := requestSpan
