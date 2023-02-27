@@ -214,10 +214,6 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 		Request:         reqDef,
 	}
 
-	var harSpan hartracing.Span
-	harSpan = s.startHarSpan(s.harSpan, execCtx.HarSpan)
-	defer harSpan.Finish()
-
 	var reqSpanName string
 	if s.cfg.TraceRequestName != "" {
 		reqSpanName = strings.Replace(s.cfg.TraceRequestName, RequestTraceNameOpNamePlaceHolder, execCtx.OpName, 1)
@@ -228,6 +224,12 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 
 	reqSpan := s.startSpan(s.span, execCtx.Span, reqSpanName)
 	defer reqSpan.Finish()
+
+	// create a har-span and set a tag in the opentracing span.
+	var harSpan hartracing.Span
+	harSpan = s.startHarSpan(s.harSpan, execCtx.HarSpan)
+	defer harSpan.Finish()
+	reqSpan.SetTag(hartracing.HARTraceOpenTracingTagName, harSpan.Id())
 
 	// reqDef.Headers = append(reqDef.Headers, NameValuePair{Name: "Accept", Value: "application/json"})
 	req := s.getRequestWithSpans(reqDef, reqSpan, harSpan)
