@@ -72,6 +72,9 @@ func NewClient(cfg *Config, opts ...Option) *Client {
 	}
 
 	s.restClient = resty.New()
+
+	log.Trace().Bool("har-tracing-enabled", s.cfg.HarTracingEnabled).Msg(semLogContext)
+
 	if s.cfg.RestTimeout != 0 {
 		s.restClient.SetTimeout(s.cfg.RestTimeout)
 		log.Trace().Dur("rest-timeout", s.cfg.RestTimeout).Msg(semLogContext)
