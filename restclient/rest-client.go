@@ -1,7 +1,9 @@
 package restclient
 
 import (
+	"context"
 	"crypto/tls"
+	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/hartracing"
@@ -45,7 +47,7 @@ type Client struct {
 
 func NewClient(cfg *Config, opts ...Option) *Client {
 
-	const semLogContext = "restclient.NewClient"
+	const semLogContext = "http-client::new"
 
 	var clientOptions Config
 	if cfg == nil {
@@ -105,7 +107,7 @@ func NewClient(cfg *Config, opts ...Option) *Client {
 func retryCondition(errorsList []int) resty.RetryConditionFunc {
 	return func(resp *resty.Response, err error) bool {
 
-		const semLogContext = "restclient.NewClient"
+		const semLogContext = "http-client::retry-condition-func"
 
 		if len(errorsList) == 0 || err != nil {
 			log.Trace().Err(err).Msg(semLogContext + " retry condition satisifed")
@@ -201,6 +203,8 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers har.
 
 func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption) (*har.Entry, error) {
 
+	const semLogContext = "http-client::execute"
+
 	execCtx := ExecutionContext{}
 	for _, o := range execOpts {
 		o(&execCtx)
@@ -225,11 +229,13 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 	reqSpan := s.startSpan(s.span, execCtx.Span, reqSpanName)
 	defer reqSpan.Finish()
 
-	// create a har-span and set a tag in the opentracing span.
+	// create a har-span and set a tag in the opentracing span.... if hartracing has been enabled...
 	var harSpan hartracing.Span
-	harSpan = s.startHarSpan(s.harSpan, execCtx.HarSpan)
-	defer harSpan.Finish()
-	reqSpan.SetTag(hartracing.HARTraceOpenTracingTagName, harSpan.Id())
+	if s.cfg.IsHarTracingEnabled() {
+		harSpan = s.startHarSpan(s.harSpan, execCtx.HarSpan)
+		defer harSpan.Finish()
+		reqSpan.SetTag(hartracing.HARTraceOpenTracingTagName, harSpan.Id())
+	}
 
 	// reqDef.Headers = append(reqDef.Headers, NameValuePair{Name: "Accept", Value: "application/json"})
 	req := s.getRequestWithSpans(reqDef, reqSpan, harSpan)
@@ -255,17 +261,16 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 	var st string
 	if resp != nil {
 		sc = resp.StatusCode()
+		st = resp.Status()
 	}
-
-	s.setSpanTags(reqSpan, execCtx.OpName, execCtx.RequestId, execCtx.LRAId, u, reqDef.Method, sc, err)
 
 	var r *har.Response
 	if err == nil {
 
 		r = &har.Response{
-			Status:      resp.StatusCode(),
+			Status:      sc,
 			HTTPVersion: "1.1",
-			StatusText:  resp.Status(),
+			StatusText:  st,
 			HeadersSize: -1,
 			BodySize:    resp.Size(),
 			Cookies:     []har.Cookie{},
@@ -280,11 +285,15 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 			r.Headers = append(r.Headers, har.NameValuePair{Name: n, Value: resp.Header().Get(n)})
 		}
 	} else {
+		if resp != nil {
+			log.Warn().Msg(semLogContext + " error is not nil but response is present... compare to symphony behaviour.. v0.0.15")
+		}
 		sc, st = DetectStatusCodeStatusTextFromError(sc, err)
-		s.setSpanTags(reqSpan, execCtx.OpName, execCtx.RequestId, execCtx.LRAId, u, reqDef.Method, sc, err)
 		err = util.NewError(strconv.Itoa(sc), err)
 		r = har.NewResponse(sc, st, "text/plain", []byte(err.Error()), nil)
 	}
+
+	s.setSpanTags(reqSpan, execCtx.OpName, execCtx.RequestId, execCtx.LRAId, u, reqDef.Method, sc, err)
 
 	if e.StartedDateTime != "" {
 		elapsed := time.Since(e.StartDateTimeTm)
@@ -303,7 +312,9 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 
 	e.Response = r
 
-	harSpan.AddEntry(e)
+	if harSpan != nil {
+		harSpan.AddEntry(e)
+	}
 
 	return e, err
 	// return resp.StatusCode(), resp.Body(), resp.Header(), err
@@ -362,7 +373,7 @@ func (s *Client) getRequestSpan() opentracing.Span {
 
 func (s *Client) startHarSpan(clientSpan hartracing.Span, requestSpan hartracing.Span) hartracing.Span {
 
-	const semLogContext = "tpm-http-client::start-har-span"
+	const semLogContext = "http-client::start-har-span"
 	var span hartracing.Span
 
 	parentSpan := requestSpan
@@ -383,7 +394,7 @@ func (s *Client) startHarSpan(clientSpan hartracing.Span, requestSpan hartracing
 
 func (s *Client) startSpan(groupParentSpan, requestParentSpan opentracing.Span, spanName string) opentracing.Span {
 
-	const semLogContext = "tpm-common/rest-client"
+	const semLogContext = "http-client::start-span"
 	var span opentracing.Span
 
 	parentSpan := groupParentSpan
@@ -438,7 +449,7 @@ func DetectStatusCodeStatusTextFromError(c int, err error) (int, string) {
 		return c, http.StatusText(c)
 	}
 
-	if os.IsTimeout(err) {
+	if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
 		return http.StatusRequestTimeout, http.StatusText(http.StatusRequestTimeout)
 	}
 
@@ -461,11 +472,15 @@ func DetectStatusCodeStatusTextFromError(c int, err error) (int, string) {
 	case *net.OpError:
 		rc = http.StatusServiceUnavailable
 		rt = http.StatusText(rc)
-		switch t.Op {
-		case "dial":
-			rt = "Unknown host"
-		case "read":
-			rt = "Connection refused"
+		if errors.Is(t, syscall.ECONNRESET) {
+			rt = "Reset by peer"
+		} else {
+			switch t.Op {
+			case "dial":
+				rt = "Unknown host"
+			case "read":
+				rt = "Connection refused"
+			}
 		}
 
 	case syscall.Errno:
