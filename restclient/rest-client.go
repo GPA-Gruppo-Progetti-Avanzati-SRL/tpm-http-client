@@ -328,7 +328,10 @@ func (s *Client) getRequestWithSpans(reqDef *har.Request, reqSpan opentracing.Sp
 	req := s.restClient.R()
 	// Transmit the span's TraceContext as HTTP headers on our outbound request.
 	_ = opentracing.GlobalTracer().Inject(reqSpan.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header))
-	_ = hartracing.GlobalTracer().Inject(reqHarSpan.Context(), hartracing.HTTPHeadersCarrier(req.Header))
+
+	if reqHarSpan != nil {
+		_ = hartracing.GlobalTracer().Inject(reqHarSpan.Context(), hartracing.HTTPHeadersCarrier(req.Header))
+	}
 
 	switch reqDef.Method {
 	case http.MethodGet:
