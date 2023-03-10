@@ -258,6 +258,8 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 		resp, err = req.Put(u)
 	case http.MethodDelete:
 		resp, err = req.Delete(u)
+	case http.MethodPatch:
+		resp, err = req.Patch(u)
 	}
 
 	var sc int
@@ -338,11 +340,10 @@ func (s *Client) getRequestWithSpans(reqDef *har.Request, reqSpan opentracing.Sp
 	case http.MethodHead:
 	case http.MethodDelete:
 	case http.MethodPost:
-		if reqDef.HasBody() {
-			req = req.SetBody(reqDef.PostData.Data)
-		}
-
+		fallthrough
 	case http.MethodPut:
+		fallthrough
+	case http.MethodPatch:
 		if reqDef.HasBody() {
 			req = req.SetBody(reqDef.PostData.Data)
 		}
