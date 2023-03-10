@@ -216,7 +216,7 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 	now := time.Now()
 	e := &har.Entry{
 		Comment:         execCtx.RequestId,
-		StartedDateTime: now.Format("2006-01-02T15:04:05.999999999Z07:00"),
+		StartedDateTime: now.Format(time.RFC3339Nano),
 		StartDateTimeTm: now,
 		Request:         reqDef,
 	}
