@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ServerPort = 9090
+	ServerPort = 3002
 )
 
 func TestRestClient(t *testing.T) {
@@ -45,10 +45,10 @@ func TestRestClient(t *testing.T) {
 		Headers:          []restclient.Header{{Name: "x-api-key", Value: "pippo"}},
 		TraceGroupName:   "rest-client",
 		TraceRequestName: "rest-client-" + restclient.RequestTraceNameOpNamePlaceHolder,
-		RetryCount:       0,
+		RetryCount:       3,
 		RetryWaitTime:    0,
 		RetryMaxWaitTime: 0,
-		RetryOnHttpError: nil,
+		RetryOnHttpError: []int{429},
 		Span:             nil,
 	}
 

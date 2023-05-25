@@ -81,3 +81,27 @@ func WithTimeout(to time.Duration) Option {
 		o.RestTimeout = to
 	}
 }
+
+func WithRetryWaitTime(to time.Duration) Option {
+	return func(o *Config) {
+		o.RetryWaitTime = to
+	}
+}
+
+func WithRetryMaxWaitTime(to time.Duration) Option {
+	return func(o *Config) {
+		o.RetryMaxWaitTime = to
+	}
+}
+
+func WithRetryOnHttpError(to []int) Option {
+	return func(o *Config) {
+		o.RetryOnHttpError = to
+	}
+}
+
+func WithRetryCount(to int) Option {
+	return func(o *Config) {
+		o.RetryCount = to
+	}
+}

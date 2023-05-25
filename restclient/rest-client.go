@@ -113,7 +113,7 @@ func retryCondition(errorsList []int) resty.RetryConditionFunc {
 		const semLogContext = "http-client::retry-condition-func"
 
 		if len(errorsList) == 0 || err != nil {
-			log.Trace().Err(err).Msg(semLogContext + " retry condition satisifed")
+			log.Trace().Err(err).Msg(semLogContext + " retry condition satisfied")
 			return true
 		}
 
