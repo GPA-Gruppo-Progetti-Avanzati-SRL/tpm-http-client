@@ -1,7 +1,7 @@
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.0.94 h1:WfAGo8ky/a9lxSbzLSBCIjqxaUpl6aLpGI2nxVWfcxA=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.0.94/go.mod h1:WZLFgy+qbyanFBP25v+0WVvcqgYJHCeqsRmVSWXMC2o=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.1 h1:QCIjnTNzNlkw6qZQ3pmuuwv+xbTUUVBRXA4fVA1kncQ=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.1/go.mod h1:WZLFgy+qbyanFBP25v+0WVvcqgYJHCeqsRmVSWXMC2o=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.24 h1:yBwnFIQBQkT80UF59AtjHPohMwAUySitkjOMyOxAOLM=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.24/go.mod h1:hSNaFWfK1jK0gbRqNE/wLctEppC0TeF5f5YMFaIAuZk=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2 h1:5IcZpTvzydCQeHzK4Ef/D5rrSqwxob0t8PQPMybUNFM=
