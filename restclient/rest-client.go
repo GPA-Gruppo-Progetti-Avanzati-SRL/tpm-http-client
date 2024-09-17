@@ -277,6 +277,7 @@ func (s *Client) Execute(reqDef *har.Request, execOpts ...ExecutionContextOption
 			HTTPVersion: "1.1",
 			StatusText:  st,
 			HeadersSize: -1,
+			Headers:     []har.NameValuePair{},
 			BodySize:    resp.Size(),
 			Cookies:     []har.Cookie{},
 			Content: &har.Content{
