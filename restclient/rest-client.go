@@ -355,6 +355,10 @@ func (s *Client) getRequestWithSpans(reqDef *har.Request, reqSpan opentracing.Sp
 		req.SetHeader(h.Name, h.Value)
 	}
 
+	for _, h := range reqDef.QueryString {
+		req.SetQueryParam(h.Name, h.Value)
+	}
+
 	return req
 }
 
