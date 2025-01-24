@@ -3,7 +3,7 @@ module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client
 go 1.19
 
 require (
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.71
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.73
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19-RC2
 	github.com/go-resty/resty/v2 v2.16.4
 	github.com/opentracing/opentracing-go v1.2.0
