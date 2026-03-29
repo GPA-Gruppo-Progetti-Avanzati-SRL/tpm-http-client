@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.93
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.26
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.27
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/rs/zerolog v1.35.0
